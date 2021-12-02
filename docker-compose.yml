@@ -1,0 +1,59 @@
+version: '3.5'
+
+services:
+  buyers_api:
+    container_name: buyers_api
+    hostname: api.sandbox
+    build: ./api
+    ports:
+      - "80:80"
+    volumes:
+      - ./api:/var/www/html
+      - ./api/vendor:/var/www/html/vendor
+      - ./docker/nginx/api.conf:/etc/nginx/conf.d/api.conf
+      - ./docker/php/xdebug.ini:/etc/php/7.4/mods-available/xdebug.ini
+    networks:
+      internal:
+        aliases:
+          - "buyersapi.sandbox"
+  buyers_front:
+    container_name: buyers_front
+    hostname: front.sandbox
+    build: ./front
+    volumes:
+      - ./front:/home/node/app
+      - ./front/node_modules:/home/node/app/node_modules
+    command: ["yarn", "start"]
+    ports:
+      - "3009:3009"
+    networks:
+      internal:
+        aliases:
+          - "front.sandbox"
+  buyers_db:
+    image: mysql/mysql-server:8.0
+    container_name: buyers_db
+    restart: always
+    env_file:
+      - "db/development.env"
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - data_buyers_db:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      internal:
+        aliases:
+          - "buyersdb.sandbox"
+volumes:
+  data_buyers_db:
+    name: data_buyers_db
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.30.0/24

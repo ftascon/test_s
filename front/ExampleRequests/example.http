@@ -1,0 +1,7 @@
+### EXAMPLE REQUEST
+GET {{host}}/api
+Accept: application/json
+Content-Type: application/json
+
+{}
+
